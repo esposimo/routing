@@ -1,0 +1,22 @@
+{
+  "name": "smn/routing",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "smn\\routing\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Simone Esposito",
+      "email": "simone.esposito1986@gmail.com"
+    }
+  ],
+  "require": {
+  },
+  "require-dev": {
+    "phpunit/phpunit": "11.3.6"
+  }
+}
