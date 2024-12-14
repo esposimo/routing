@@ -6,4 +6,4 @@
 dev*.sh
 /*.php
 .htaccess
-.Dockerfile
+Dockerfile
