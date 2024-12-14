@@ -5,8 +5,11 @@ namespace smn\routing;
 use stdClass;
 
 /**
- * Handles and parses the current HTTP request, providing access to various URL components such as scheme, host, port,
- * path, query string, and fragment. Also offers utility methods to retrieve request information in structured formats.
+ * Represents and processes HTTP request details.
+ *
+ * <p>This class provides methods to construct and retrieve components of HTTP requests,
+ * including the URL, headers, method, and other details. The class utilizes static
+ * properties and methods to manage and extract data from the request environment.</p>
  */
 class Request
 {
@@ -17,6 +20,17 @@ class Request
      * This variable is intended to hold a URL value.
      */
     protected static string $url = "";
+
+
+    /**
+     * An array to hold header values.
+     */
+    protected static array $headers = [];
+
+    /**
+     * A string variable to store the HTTP method value.
+     */
+    protected static string $method = "";
 
     /**
      * Retrieves the scheme component of the constructed URL.
@@ -121,20 +135,51 @@ class Request
 
 
     /**
-     * Retrieves detailed information about the current request's URL components.
+     * Retrieves the HTTP method associated with the constructed URL.
      *
-     * <p>This method returns an associative array containing the specific parts of the URL,
-     * including the scheme, host, port, request URI, query string, and fragment identifier.</p>
+     * <p>This method accesses the HTTP method (e.g., "GET", "POST") that has been set
+     * for the constructed URL after invoking the <code>buildUrl</code> method.</p>
      *
-     * @return array An associative array with the following keys:
-     * <ul>
-     *   <li><code>scheme</code>: The scheme part of the URL (e.g., "http" or "https").</li>
-     *   <li><code>host</code>: The hostname of the URL.</li>
-     *   <li><code>port</code>: The port number of the URL.</li>
-     *   <li><code>requestUri</code>: The full URI of the request.</li>
-     *   <li><code>queryString</code>: The query string of the URL (if any).</li>
-     *   <li><code>fragment</code>: The fragment identifier of the URL (if any).</li>
-     * </ul>
+     * @return string The HTTP method associated with the URL.
+     */
+    public static function getMethod() : string
+    {
+        self::buildUrl();
+        return self::$method;
+    }
+
+
+    /**
+     * Retrieves the headers associated with the constructed URL.
+     *
+     * <p>This method returns an array of headers that have been set or associated
+     * with the URL constructed by the <code>buildUrl</code> method.</p>
+     *
+     * @return array An associative array of headers, where each key represents a header name and each value represents the corresponding header value.
+     */
+    public static function getHeaders() : array
+    {
+        self::buildUrl();
+        return self::$headers;
+    }
+
+
+    /**
+     * Retrieves detailed information about the current HTTP request.
+     *
+     * <p>This method gathers various components related to the HTTP request, including the scheme,
+     * host, port, request URI, query string, fragment, and headers.</p>
+     *
+     * @return array An associative array containing the following keys:
+     *               <ul>
+     *                   <li><code>scheme</code>: The scheme of the request URL (e.g., "http" or "https").</li>
+     *                   <li><code>host</code>: The hostname of the request.</li>
+     *                   <li><code>port</code>: The port number used for the request.</li>
+     *                   <li><code>requestUri</code>: The URI path of the request.</li>
+     *                   <li><code>queryString</code>: The query string appended to the request URL.</li>
+     *                   <li><code>fragment</code>: The fragment identifier of the request URL, if any.</li>
+     *                   <li><code>headers</code>: An array of headers included with the request.</li>
+     *               </ul>
      */
     public static function getInfoRequest() : array
     {
@@ -144,7 +189,9 @@ class Request
             'port' => self::getPort(),
             'requestUri' => self::getRequestUri(),
             'queryString' => self::getQueryString(),
-            'fragment' => self::getFragment()
+            'fragment' => self::getFragment(),
+            'method' => self::getMethod(),
+            'headers' => self::getHeaders()
         ];
     }
 
@@ -162,22 +209,48 @@ class Request
     }
 
     /**
-     * Constructs and stores the full URL based on the current server environment.
+     * Constructs the full URL of the current request and populates HTTP headers.
      *
-     * <p>This method builds the URL by using the protocol (HTTP or HTTPS), the host name,
-     * and the request URI retrieved from the server's global variables. It ensures that the
-     * URL is initialized only once and stored in the class property for subsequent use.</p>
+     * <p>This method builds the full URL by combining the protocol (HTTP/HTTPS), host, and request URI
+     * from the server environment. Additionally, it parses and stores HTTP headers provided in the
+     * <code>$_SERVER</code> superglobal into a structured array.</p>
      *
-     * @return void This method does not return a value; it sets the constructed URL internally.
+     * <p>The resulting URL and headers are stored internally and can be used by other methods
+     * within the class.</p>
+     *
+     * @return void This method does not return a value. The constructed URL and headers are stored
+     * internally in static properties.
      */
     public static function buildUrl() : void
     {
         if (empty(self::$url))
         {
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-            $host = $_SERVER['HTTP_HOST'];
-            $requestUri = $_SERVER['REQUEST_URI'];
-            self::$url = $protocol . $host . $requestUri;
+            $protocol       = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+            $host           = $_SERVER['HTTP_HOST'];
+            $requestUri     = $_SERVER['REQUEST_URI'];
+            self::$url      = $protocol . $host . $requestUri;
+            self::$method   = strtoupper($_SERVER['REQUEST_METHOD']);
+
+            $headers = [];
+
+            foreach ($_SERVER as $key => $value)
+            {
+                if (str_starts_with($key, 'HTTP_'))
+                {
+                    $headerName = str_replace('_', '-', substr($key, 5));
+                    $headerName = strtolower($headerName);
+                    $headers[$headerName] = $value;
+                }
+            }
+            if (isset($_SERVER['CONTENT_TYPE']))
+            {
+                $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+            }
+            if (isset($_SERVER['CONTENT_LENGTH']))
+            {
+                $headers['content-length'] = $_SERVER['CONTENT_LENGTH'];
+            }
+            self::$headers = $headers;
         }
     }
 
