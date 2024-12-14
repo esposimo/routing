@@ -21,17 +21,10 @@ $logic = [
 ];
 
 
-/**
- *  Classe request uri che accetta una logica e dei valori. Il valore è descritto in values e deve essere del tipo richiesto da logic
- *  La classe and effettua un assert su ciò che c'è dentro (in maniera ricorsiva)
- *
- */
+print_r(\smn\routing\Request::getInfoRequest());
+echo PHP_EOL;
 
 
-$url = '/cnt/action/other/data';
-$request_uri = $logic['request_uri'];
-
-echo var_dump(smn\routing\logic\Assert::Equal($request_uri['values'], 'api'));
 
 
 

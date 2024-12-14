@@ -1,3 +1,9 @@
 /composer.lock
 /vendor/
 /.idea/
+/mock
+/trash
+dev*.sh
+/*.php
+.htaccess
+.Dockerfile
